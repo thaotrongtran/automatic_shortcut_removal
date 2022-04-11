@@ -1,21 +1,14 @@
 from pathlib import Path
 from models.lens import Unet_ResNet
 from models.extractor import Resnet_FC
-from datasets.cifar import arrowedCIFAR
+from datasets.cifar import arrowedCIFAR, chromaCIFAR
 import torch
-# import matplotlib.pyplot as plt
-# import numpy as np
+from arguments import parse_args
 from tqdm import tqdm
-# from torchsummary import summary
-
 import torch.nn as nn
-# from torch import Tensor
-# from torchvision.models.resnet import BasicBlock,Bottleneck
 import torch.optim as optim
 
 path = Path('.')
-
-
 def recon_loss(raw_inputs, lens_output):
     loss = nn.MSELoss(reduction = 'sum')
     return loss(raw_inputs,lens_output)
@@ -39,7 +32,7 @@ def train_loop(trainloader, device, lens_usage, model2, num_epochs,learning_rate
     model2.train()
     criterion = nn.CrossEntropyLoss(reduction='mean')
     sm = nn.Softmax(dim=1)
-    for epoch in range(num_epochs):
+    for epoch in tqdm(range(num_epochs)):
         ssl_losses = 0.0
         lens_losses = 0.0
         for i, (inputs, labels) in enumerate(trainloader):
@@ -78,30 +71,42 @@ def train_loop(trainloader, device, lens_usage, model2, num_epochs,learning_rate
             if i > 0 and i % 50 == 0:
                 print(f'Epoch: {epoch}, batch {i}] ssl_loss: {ssl_losses / i:.3f} lens_loss: {lens_losses / i:.3f}')
 
-def train_model(clean_data, num_epochs, batch_size, learning_rate, lambda_term, lens_usage, model_name, full_adversarial= False):
-    trainset = arrowedCIFAR(train=True, clean_data=True)
-    batch_size = 512
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+def train_lens(args):
+    if args.clean_data:
+        trainset = arrowedCIFAR(train=True, clean_data=True)
+    elif args.shortcut == 'arrow':
+        trainset = arrowedCIFAR(train=True, clean_data=False)
+    elif args.shortcut == 'chromatic':
+        trainset = arrowedCIFAR(train=True)
+
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                               shuffle=True)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Running on device:', device)
 
-    if lens_usage:
+    if args.lens_usage:
         model1 = Unet_ResNet()
         model1.to(device)
     else:
         model1 = None
     model2 = Resnet_FC(out_classes=4)
     model2.to(device)
-    train_loop(trainloader, device, lens_usage, model2, num_epochs, learning_rate, lambda_term, model1=model1,
-               full_adversarial=full_adversarial)
+    train_loop(trainloader, device, args.lens_usage, model2, args.epochs, args.lr, args.lambda_term, model1=model1,
+               full_adversarial=args.full_adversarial)
     #Saving model
-    if lens_usage:
-        torch.save(model1, path/f'lens_{model_name}.pth')
-    torch.save(model2, path / f'extractor_{model_name}.pth')
+    output_dir = Path(path/f'{args.output_dir}')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    if args.lens_usage:
+        torch.save(model1, path/f'{args.output_dir}/{args.model_name}/lens.pth')
+    torch.save(model2, path / f'{args.output_dir}/{args.model_name}/extractor.pth')
+
+def train_downstream(args):
+    pass
 
 if __name__ == '__main__':
-    #TODO: arg for getting arrowed CIFAR
-    #Clean data or not
-
-
+    args = parse_args(mode='train')
+    print('Training with these arguments', args)
+    if args.downstream:
+        train_downstream(args)
+    else:
+        train_lens(args)
