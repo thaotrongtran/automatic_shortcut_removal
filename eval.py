@@ -2,9 +2,14 @@ import torch
 from datasets.cifar import arrowedCIFAR
 from models.extractor import Resnet_FC
 from models.lens import Unet_ResNet
+from models.logistic import Logistic_Net
 from arguments import parse_args
 from pathlib import Path
 import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
+
 path = Path('.')
 
 def eval_loop(lens_usage, model2, testloader, device, model1 = None):
@@ -31,7 +36,7 @@ def evaluate_pretext(args):
                                              shuffle=True)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Running on device:', device)
-    output_dir = Path(path / f'{args.output_dir}')
+    output_dir = Path(path / f'{args.output_dir}/{args.model_name}')
     if output_dir.exists():
         if args.lens_usage:
             model1 = torch.load(f'{args.output_dir}/{args.model_name}/lens.pth')
@@ -46,7 +51,34 @@ def evaluate_pretext(args):
 
 #TODO: Evaluate downstream
 def eval_downstream(args):
-    pass
+    transform = transforms.Compose(
+        [transforms.ToTensor(),
+         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                           download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Running on device:', device)
+    output_dir = Path(path / f'{args.output_dir}/{args.model_name}')
+    if output_dir.exists():
+        model =  torch.load(path/f'{args.output_dir}/{args.model_name}/logistic.pth')
+        model.to(device)
+        sm = nn.Softmax(dim=1)
+        # Evaluation
+        correct = 0
+        total = 0
+        model.eval()
+        with torch.no_grad():
+            for data in testloader:
+                images, labels = data
+                outputs = model(images.to(device))
+                predicted = torch.argmax(sm(outputs), dim=1).cpu()
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        print(f'Accuracy on test images: {100 * correct // total} %')
+    else:
+        print('Model output folder does not exist. Please check again.')
 
 if __name__ == '__main__':
     args = parse_args(mode='eval')

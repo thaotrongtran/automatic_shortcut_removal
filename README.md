@@ -57,6 +57,10 @@ A trained downstream model can be evaluated on the image classification task of 
  python eval.py --downstream --model_name 001
 ```
 
+## Visualization
+Use the notebook in folder `Visualization` to see the difference between original image and the Lens network's output.
+
+
 
 ## References
 ```

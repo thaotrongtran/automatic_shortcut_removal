@@ -53,39 +53,3 @@ class arrowedCIFAR(Dataset):
 
     def __getitem__(self, idx):
         return self.data[idx], self.labels[idx]
-
-class chromaCIFAR(Dataset):
-    """Make CIFAR with chromatic aberration"""
-    def __init__(self, train=True):
-        transform = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-        self.train = train
-        if self.train:
-            self.cifar = torchvision.datasets.CIFAR10(root = path/'data', download = True, transform=transform, train = True)
-        else:
-            self.cifar = torchvision.datasets.CIFAR10(root = path/'data', download = True, transform=transform, train = False)
-        self.data = []
-        self.labels = []
-        move = 1
-        for i in tqdm(range(len(self.cifar))):
-            img, orig_label = self.cifar.__getitem__(i)
-            img_zeros = torch.zeros(3,32,32)
-            for k, angle in enumerate([0, 90, 180, 270]):
-                img = TF.rotate(img, angle) #Rotate first
-                img_zeros[2,:,:] = img[2,:,:] #No touch Red and Blue channel
-                img_zeros[0,:,:] = img[0,:,:]
-                if angle == 0:
-                    img_zeros[1,:,move:32] = img[1,:,0:32-move]
-                elif angle == 90:
-                    img_zeros[1,0:32-move,:] = img[1,1:32,:]
-                elif angle == 180:
-                    img_zeros[1,:,0:32-move] = img[1,:,1:32]
-                elif angle == 270:
-                    img_zeros[1,move:32,:] = img[1,0:32-move,:]
-                self.data.append(img_zeros)
-                self.labels.append(k) #add label
-    def __len__(self):
-        return len(self.labels)
-    def __getitem__(self, idx):
-        return self.data[idx], self.labels[idx]
