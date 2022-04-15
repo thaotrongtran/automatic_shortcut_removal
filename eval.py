@@ -13,6 +13,9 @@ import torchvision.transforms.functional as TF
 path = Path('.')
 
 def eval_loop(lens_usage, model2, testloader, device, model1 = None):
+    '''
+    Pretext evaluation loop
+    '''
     correct = 0
     total = 0
     model2.eval()
@@ -31,6 +34,9 @@ def eval_loop(lens_usage, model2, testloader, device, model1 = None):
     print(f'Accuracy on test images: {100 * correct // total} %')
 
 def evaluate_pretext(args):
+    '''
+    Method to evaluate a model on pretext task
+    '''
     testset = arrowedCIFAR(train=False, clean_data=True)
     testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size,
                                              shuffle=True)
@@ -49,8 +55,10 @@ def evaluate_pretext(args):
     else:
         print('Model output folder does not exist. Please check again.')
 
-#TODO: Evaluate downstream
 def eval_downstream(args):
+    '''
+    Method to evaluate a model downstream task
+    '''
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])

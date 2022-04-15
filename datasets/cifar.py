@@ -45,8 +45,11 @@ class arrowedCIFAR(Dataset):
             for k, angle in enumerate([90, 180, 270]):
                 img = self.cifar.__getitem__(i)[0]
                 if not clean_data:
+                    img = TF.rotate(img, angle)
                     img = add_arrow(img)
-                self.data.append(TF.rotate(img, angle))
+                else:
+                    img = TF.rotate(img, angle)
+                self.data.append(img)
                 self.labels.append(k + 1)  # Add the rest of labels
     def __len__(self):
         return len(self.labels)
