@@ -87,12 +87,12 @@ def train_loop(trainloader, device, lens_usage, model2, num_epochs,learning_rate
             # Update step
             if lens_usage:
                 optim1.step()
-                adv_losses += adv_loss.item()
+                adv_losses += adv.item()
                 recon_losses += r_loss.item()
             optim2.step()
             ssl_losses += ssl_loss.item()
             if i > 0 and i % 50 == 0:
-                print(f'[{epoch}, batch {i}] ssl_loss: {ssl_losses / i:.3f} lens_loss: {adv_losses / i:.3f},'
+                print(f'[{epoch}, batch {i}] ssl_loss: {ssl_losses / i:.3f} adv_loss: {adv_losses / i:.3f},'
                       f' recon_loss: {recon_losses / i:.3f}')
 
 def train_lens(args):
