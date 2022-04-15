@@ -4,6 +4,10 @@ The experiment on CIFAR-10 is part of the paper, [Automatic shortcut removal for
 representation learning](https://arxiv.org/abs/2002.08822)
 
 
+<img src="https://raw.githubusercontent.com/thaotrongtran/automatic_shortcut_removal/master/visualization/lens1.png" width="300" height="300">
+<img src="https://raw.githubusercontent.com/thaotrongtran/automatic_shortcut_removal/master/visualization/lens2.png" width="300" height="300">
+
+
 ## Installation
 Required python packages are in `requirements.txt`. Install using conda:
 ```
