@@ -3,10 +3,12 @@
 The experiment on CIFAR-10 is part of the paper, [Automatic shortcut removal for self-supervised
 representation learning](https://arxiv.org/abs/2002.08822)
 
+### Lens network modify the images to hide the arrows
 
-<img src="https://raw.githubusercontent.com/thaotrongtran/automatic_shortcut_removal/master/visualization/lens1.png" width="200" height="200">
-<img src="https://raw.githubusercontent.com/thaotrongtran/automatic_shortcut_removal/master/visualization/lens2.png" width="200" height="200">
-
+<p float="left">
+  <img src="https://raw.githubusercontent.com/thaotrongtran/automatic_shortcut_removal/master/visualization/lens1.png" width="250" height="250">
+  <img src="https://raw.githubusercontent.com/thaotrongtran/automatic_shortcut_removal/master/visualization/lens2.png" width="250" height="250">
+</p>
 
 ## Installation
 Required python packages are in `requirements.txt`. Install using conda:
